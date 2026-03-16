@@ -16,18 +16,19 @@ COPY .mvn/ .mvn
 
 # 将本地目录下的mvnw和pom.xml复制到容器内的当前工作目录
 # Copy only essential Maven files required to download dependencies
-COPY mvnw pom.xml ./
+COPY --chmod=0755 mvnw mvnw
+COPY pom.xml pom.xml
 
 # 在容器内运行 ./mvnw dependency:go-offline 命令，下载应用所需的依赖包并缓存到本地
 # This command tells Maven to download all the dependencies specified in the pom.xml file and cache them locally. 
 # The dependencies will be cached and won't need to be downloaded again unless the pom.xml file changes.
-RUN chmod +x ./mvnw dependency:resolve
+RUN ./mvnw dependency:go-offline
 
 # 将本地目录下的src文件夹复制到容器内的src文件夹
 COPY ./src ./src
 
 # 在容器内运行./mvnw clean install命令，编译应用并生成可执行的jar文件
-RUN chmod +x ./mvnw clean install
+RUN ./mvnw clean install
 
 
 
