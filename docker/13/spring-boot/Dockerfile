@@ -10,18 +10,15 @@ FROM eclipse-temurin:17-jdk-jammy AS builder
 WORKDIR /opt/app
 
 # 将本地目录下的.mvn文件夹复制到容器内的.mvn文件夹
-# The special Maven files help download dependencies
 # The .mvn directory contains the Maven Wrapper, which allows you to run Maven commands without having Maven installed on the host machine.
 COPY .mvn/ .mvn
 
-# 将本地目录下的mvnw和pom.xml复制到容器内的当前工作目录
-# Copy only essential Maven files required to download dependencies
+# Copy the mvnw wrapper with executable permissions.
 COPY --chmod=0755 mvnw mvnw
 COPY pom.xml pom.xml
 
-# 在容器内运行 ./mvnw dependency:go-offline 命令，下载应用所需的依赖包并缓存到本地
+# 在容器内运行./mvnw dependency:go-offline 命令，下载应用所需的依赖包并缓存到本地
 # This command tells Maven to download all the dependencies specified in the pom.xml file and cache them locally. 
-# The dependencies will be cached and won't need to be downloaded again unless the pom.xml file changes.
 RUN ./mvnw dependency:go-offline
 
 # 将本地目录下的src文件夹复制到容器内的src文件夹
@@ -31,7 +28,6 @@ COPY ./src ./src
 RUN ./mvnw clean install
 
 
-
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /opt/app
 # 声明镜像运行时监听的端口号为 8080
@@ -39,4 +35,5 @@ EXPOSE 8080
 # 从之前命名为builder的构建阶段中，将生成的jar文件复制到当前阶段的/opt/app目录下
 COPY --from=builder /opt/app/target/*.jar /opt/app/*.jar
 # 设置容器启动时执行的命令，即运行/opt/app目录下的所有jar文件
-# CMD ["java", "-jar", "/opt/app/*.jar" ]
+# http://localhost:8080/hello
+CMD ["java", "-jar", "/opt/app/*.jar" ]
